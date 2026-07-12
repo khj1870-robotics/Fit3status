@@ -64,7 +64,7 @@ final class StatusNotification {
                 .setContentIntent(openPendingIntent)
                 .addAction(replyAction)
                 .setCategory(Notification.CATEGORY_MESSAGE)
-                .setOngoing(true)
+                .setOngoing(false)
                 .setAutoCancel(false)
                 .setOnlyAlertOnce(true)
                 .setColor(Color.rgb(79, 99, 86))
