@@ -16,6 +16,8 @@ final class StatusNotification {
     static final int NOTIFICATION_ID = 3103;
     static final String KEY_REPLY = "status_reply";
     static final String ACTION_REPLY = "com.fit3.statussms.SEND_REPLY";
+    static final String ACTION_NOTIFICATION_DISMISSED =
+            "com.fit3.statussms.NOTIFICATION_DISMISSED";
 
     private StatusNotification() {}
 
@@ -50,6 +52,15 @@ final class StatusNotification {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        Intent dismissedIntent = new Intent(context, NotificationDismissedReceiver.class)
+                .setAction(ACTION_NOTIFICATION_DISMISSED);
+        PendingIntent dismissedPendingIntent = PendingIntent.getBroadcast(
+                context,
+                102,
+                dismissedIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         Person sender = new Person.Builder().setName("상태 보내기").build();
         Notification.MessagingStyle style = new Notification.MessagingStyle(sender)
                 .setConversationTitle("연인에게 상태 문자 보내기")
@@ -62,9 +73,10 @@ final class StatusNotification {
                 .setContentText("알림을 열고 빠른 답장을 선택하세요")
                 .setStyle(style)
                 .setContentIntent(openPendingIntent)
+                .setDeleteIntent(dismissedPendingIntent)
                 .addAction(replyAction)
                 .setCategory(Notification.CATEGORY_MESSAGE)
-                .setOngoing(false)
+                .setOngoing(true)
                 .setAutoCancel(false)
                 .setOnlyAlertOnce(true)
                 .setColor(Color.rgb(79, 99, 86))
