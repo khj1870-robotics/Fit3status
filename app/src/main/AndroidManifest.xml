@@ -26,6 +26,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".NotificationDismissedReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".BootReceiver"
             android:enabled="true"
             android:exported="true">
