@@ -13,7 +13,11 @@ import android.provider.Settings;
 
 final class StatusNotification {
     static final String CHANNEL_ID = "fit3_status_sender";
-    static final int NOTIFICATION_ID = 3103;
+    private static final int FIRST_NOTIFICATION_ID = 3103;
+    private static final int SECOND_NOTIFICATION_ID = 3104;
+    private static final String PREFS_NAME = "fit3_notification_state";
+    private static final String KEY_NOTIFICATION_ID = "notification_id";
+
     static final String KEY_REPLY = "status_reply";
     static final String ACTION_REPLY = "com.fit3.statussms.SEND_REPLY";
     static final String ACTION_NOTIFICATION_DISMISSED =
@@ -22,8 +26,18 @@ final class StatusNotification {
     private StatusNotification() {}
 
     static void show(Context context) {
+        show(context, false);
+    }
+
+    static void showAsNewNotification(Context context) {
+        show(context, true);
+    }
+
+    private static void show(Context context, boolean useNewId) {
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         createChannel(manager);
+
+        int notificationId = getNotificationId(context, useNewId);
 
         Intent replyIntent = new Intent(context, ReplyReceiver.class)
                 .setAction(ACTION_REPLY);
@@ -76,18 +90,20 @@ final class StatusNotification {
                 .setDeleteIntent(dismissedPendingIntent)
                 .addAction(replyAction)
                 .setCategory(Notification.CATEGORY_MESSAGE)
-                .setOngoing(true)
+                .setOngoing(false)
                 .setAutoCancel(false)
-                .setOnlyAlertOnce(true)
+                .setOnlyAlertOnce(false)
                 .setColor(Color.rgb(79, 99, 86))
                 .setVisibility(Notification.VISIBILITY_PRIVATE)
                 .build();
 
-        manager.notify(NOTIFICATION_ID, notification);
+        manager.notify(notificationId, notification);
     }
 
     static void hide(Context context) {
-        context.getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        manager.cancel(FIRST_NOTIFICATION_ID);
+        manager.cancel(SECOND_NOTIFICATION_ID);
     }
 
     static boolean notificationsAllowed(Context context) {
@@ -101,13 +117,29 @@ final class StatusNotification {
         context.startActivity(intent);
     }
 
+    private static int getNotificationId(Context context, boolean useNewId) {
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+                PREFS_NAME, Context.MODE_PRIVATE);
+        int currentId = prefs.getInt(KEY_NOTIFICATION_ID, FIRST_NOTIFICATION_ID);
+
+        if (!useNewId) {
+            return currentId;
+        }
+
+        int nextId = currentId == FIRST_NOTIFICATION_ID
+                ? SECOND_NOTIFICATION_ID
+                : FIRST_NOTIFICATION_ID;
+        prefs.edit().putInt(KEY_NOTIFICATION_ID, nextId).apply();
+        return nextId;
+    }
+
     private static void createChannel(NotificationManager manager) {
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 "Fit3 상태 보내기",
                 NotificationManager.IMPORTANCE_DEFAULT
         );
-        channel.setDescription("Galaxy Fit3에서 상태 문자를 보내기 위한 고정 알림");
+        channel.setDescription("Galaxy Fit3에서 상태 문자를 보내기 위한 알림");
         channel.setSound(null, null);
         channel.enableVibration(false);
         channel.setShowBadge(false);
