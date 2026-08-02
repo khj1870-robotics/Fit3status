@@ -97,6 +97,10 @@ final class StatusNotification {
                 .setVisibility(Notification.VISIBILITY_PRIVATE)
                 .build();
 
+        // 답장 후 기존 알림이 남아 있는 상태에서 다른 ID로 새 알림을 올리면
+        // 두 개가 동시에 표시된다. 항상 두 ID를 먼저 정리하고 하나만 게시한다.
+        manager.cancel(FIRST_NOTIFICATION_ID);
+        manager.cancel(SECOND_NOTIFICATION_ID);
         manager.notify(notificationId, notification);
     }
 
